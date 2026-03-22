@@ -319,7 +319,7 @@ let currentId = null;
 
 const COLORS = ['#4f8ef7','#f7c948','#4fcf8e','#f75f4f','#b87fff','#4fd8f7','#f7944f'];
 
-function save() { localStorage.setItem('pl_projects', JSON.stringify(projects)); }
+function save() { try { localStorage.setItem('pl_projects', JSON.stringify(projects)); } catch(e) {} }
 function getProject() { return projects.find(p => p.id === currentId); }
 
 // ─── HOME ─────────────────────────────────────────────────────────────────────
@@ -747,13 +747,14 @@ document.getElementById(‘save-name-btn’).style.display = ‘none’;
 }
 
 // ─── INIT ─────────────────────────────────────────────────────────────────────
-// Clear any old data from previous versions
-const savedVersion = localStorage.getItem(‘pl_version’);
-if (savedVersion !== ‘2’) {
-localStorage.removeItem(‘pl_projects’);
-localStorage.setItem(‘pl_version’, ‘2’);
-projects = [];
+// Safe storage that works everywhere including GitHub Pages
+function save() {
+try { localStorage.setItem(‘pl_projects’, JSON.stringify(projects)); } catch(e) {}
 }
+try {
+const stored = localStorage.getItem(‘pl_projects’);
+if (stored) projects = JSON.parse(stored);
+} catch(e) { projects = []; }
 renderHome();
 </script>
 
