@@ -749,7 +749,7 @@ document.getElementById(‘save-name-btn’).style.display = ‘none’;
 // ─── INIT ─────────────────────────────────────────────────────────────────────
 // Clear any old data from previous versions
 const savedVersion = localStorage.getItem(‘pl_version’);
-if (savedVersion !== ‘3’) {
+if (savedVersion !== ‘2’) {
 localStorage.removeItem(‘pl_projects’);
 localStorage.setItem(‘pl_version’, ‘2’);
 projects = [];
