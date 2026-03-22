@@ -1,1 +1,761 @@
+<!DOCTYPE html>
 
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Project Launcher</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet"/>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { min-height: 100vh; background: #eef2f7; font-family: 'DM Mono', monospace; color: #000000; }
+
+.page { display: none; }
+.page.active { display: block; min-height: 100vh; }
+
+/* HEADER */
+.header { background: linear-gradient(135deg, #1e3a5f, #2a5898); border-bottom: 1px solid #1a3050; padding: 36px 32px 24px; }
+.header-inner { max-width: 780px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-end; }
+.eyebrow { font-size: 10px; letter-spacing: 0.2em; color: #90d0ff; text-transform: uppercase; margin-bottom: 8px; }
+h1 { font-family: ‘Cormorant Garamond’, serif; font-size: 42px; font-weight: 300; font-style: italic; color: #ffffff; line-height: 1; }
+.header-meta { font-size: 11px; color: #a8ccee; letter-spacing: 0.08em; text-align: right; }
+
+/* CONTENT */
+.content { max-width: 780px; margin: 0 auto; padding: 28px 32px 80px; }
+
+/* NEW PROJECT BAR */
+.new-project-bar { display: flex; gap: 10px; margin-bottom: 32px; }
+.new-project-input { flex: 1; background: #ffffff; border: 1px solid #c0d0e0; border-radius: 3px; padding: 12px 16px; font-family: ‘DM Mono’, monospace; font-size: 13px; color: #000000; outline: none; transition: all 0.2s; letter-spacing: 0.04em; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.new-project-input::placeholder { color: #0f2030; }
+.new-project-input:focus { border-color: #001060; box-shadow: 0 0 0 3px rgba(42,106,191,0.1); }
+.btn { background: #2a5898; border: 1px solid #1e3a5f; color: #ffffff; padding: 12px 20px; font-family: ‘DM Mono’, monospace; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; border-radius: 3px; transition: all 0.2s; white-space: nowrap; }
+.btn:hover { background: #1e3a5f; }
+.btn.danger { background: #fff0ee; color: #c03020; border: 1px solid #f0b8b0; }
+.btn.danger:hover { background: #ffd8d4; border-color: #c03020; }
+.btn.success { background: #e8f8f0; color: #187840; border: 1px solid #90d8b0; }
+.btn.success:hover { background: #ccf0dc; border-color: #187840; }
+
+/* PROJECT GRID */
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+
+/* PROJECT CARD */
+.project-card { background: #ffffff; border: 1px solid #c8d8e8; border-radius: 8px; padding: 20px; cursor: pointer; transition: all 0.25s; position: relative; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.07); }
+.project-card:hover { border-color: #001060; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(42,106,191,0.15); }
+.project-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.project-icon { font-size: 24px; margin-bottom: 12px; }
+.project-name { font-family: ‘Cormorant Garamond’, serif; font-size: 20px; font-style: italic; font-weight: 300; color: #000000; margin-bottom: 6px; }
+.project-stats { font-size: 11px; color: #0a1a2a; letter-spacing: 0.06em; line-height: 1.7; }
+.project-date { font-size: 10px; color: #0f2030; margin-top: 10px; letter-spacing: 0.08em; }
+.empty-state { text-align: center; padding: 64px 0; }
+.empty-icon { font-size: 40px; margin-bottom: 16px; color: #c0d0e0; }
+.empty-text { font-size: 12px; letter-spacing: 0.1em; color: #0f2030; }
+
+/* PROJECT VIEW */
+.back-btn { display: inline-flex; align-items: center; gap: 8px; font-size: 11px; color: #a8ccee; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 24px; transition: color 0.2s; background: none; border: none; font-family: ‘DM Mono’, monospace; }
+.back-btn:hover { color: #ffffff; }
+
+/* RENAME */
+.proj-title-wrap { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.rename-input { font-family: ‘Cormorant Garamond’, serif; font-size: 42px; font-weight: 300; font-style: italic; color: #ffffff; background: transparent; border: none; border-bottom: 1px solid #90d0ff; outline: none; line-height: 1; width: 320px; padding-bottom: 2px; }
+.edit-name-btn { font-size: 10px; color: #a8ccee; cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; background: none; border: 1px solid rgba(255,255,255,0.25); padding: 4px 10px; border-radius: 2px; font-family: ‘DM Mono’, monospace; transition: all 0.2s; white-space: nowrap; }
+.edit-name-btn:hover { color: #ffffff; border-color: rgba(255,255,255,0.7); }
+.save-name-btn { font-size: 10px; color: #60e8a8; cursor: pointer; letter-spacing: 0.08em; text-transform: uppercase; background: none; border: 1px solid rgba(96,232,168,0.4); padding: 4px 10px; border-radius: 2px; font-family: ‘DM Mono’, monospace; transition: all 0.2s; }
+.save-name-btn:hover { background: rgba(96,232,168,0.15); border-color: #60e8a8; }
+
+/* TABS */
+.tabs { display: flex; gap: 0; border-bottom: 2px solid #d8e8f4; margin-bottom: 28px; }
+.tab { padding: 10px 20px; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; color: #0a1a2a; border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: ‘DM Mono’, monospace; margin-bottom: -2px; }
+.tab:hover { color: #000820; }
+.tab.active { color: #000820; border-bottom-color: #000820; font-weight: 500; }
+
+/* TAB PANELS */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* TASKS */
+.add-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.input-sm { flex: 1; background: #ffffff; border: 1px solid #c0d0e0; border-radius: 3px; padding: 10px 14px; font-family: ‘DM Mono’, monospace; font-size: 12px; color: #000000; outline: none; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.input-sm::placeholder { color: #0f2030; }
+.input-sm:focus { border-color: #001060; box-shadow: 0 0 0 3px rgba(42,106,191,0.1); }
+.task-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: #ffffff; border: 1px solid #d0e0ee; border-radius: 4px; margin-bottom: 6px; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.task-item:hover { border-color: #001060; box-shadow: 0 2px 8px rgba(42,106,191,0.1); }
+.task-check { width: 16px; height: 16px; border: 2px solid #a0b8d0; border-radius: 3px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.task-check.done { background: #2a6abf; border-color: #001060; }
+.task-check .ck { font-size: 8px; color: #ffffff; font-weight: 700; display: none; }
+.task-check.done .ck { display: block; }
+.task-label { flex: 1; font-size: 13px; color: #000000; letter-spacing: 0.02em; cursor: pointer; }
+.task-label.done { text-decoration: line-through; color: #0f2030; }
+.del-btn { font-size: 11px; color: #b0c8e0; cursor: pointer; transition: color 0.15s; background: none; border: none; font-family: ‘DM Mono’, monospace; padding: 2px 4px; }
+.del-btn:hover { color: #c03020; }
+
+/* NOTES */
+.notes-area { width: 100%; background: #ffffff; border: 1px solid #c0d0e0; border-radius: 4px; padding: 16px; font-family: ‘DM Mono’, monospace; font-size: 13px; color: #000000; outline: none; resize: vertical; min-height: 180px; line-height: 1.7; transition: all 0.2s; letter-spacing: 0.03em; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.notes-area:focus { border-color: #001060; box-shadow: 0 0 0 3px rgba(42,106,191,0.1); }
+
+/* FILES */
+.file-drop { border: 2px dashed #b8d0e8; border-radius: 6px; padding: 32px; text-align: center; color: #0a1a2a; font-size: 11px; letter-spacing: 0.08em; margin-bottom: 16px; cursor: pointer; transition: all 0.2s; background: #f8fbff; }
+.file-drop:hover { border-color: #001060; color: #001060; background: #f0f6ff; }
+.file-item { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: #ffffff; border: 1px solid #d0e0ee; border-radius: 4px; margin-bottom: 6px; font-size: 12px; color: #000000; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.file-icon { font-size: 14px; }
+.file-name { flex: 1; }
+.file-size { color: #0a1a2a; font-size: 10px; }
+
+/* AI PROMPTS */
+.prompt-area { width: 100%; background: #ffffff; border: 1px solid #c0d0e0; border-radius: 4px; padding: 14px; font-family: ‘DM Mono’, monospace; font-size: 13px; color: #000000; outline: none; resize: vertical; min-height: 100px; line-height: 1.7; transition: all 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+.prompt-area:focus { border-color: #001060; box-shadow: 0 0 0 3px rgba(42,106,191,0.1); }
+.prompt-saved { background: #ffffff; border: 1px solid #d0e0ee; border-left: 3px solid #2a6abf; border-radius: 4px; padding: 14px; margin-bottom: 8px; font-size: 12px; line-height: 1.7; position: relative; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+.prompt-saved-label { font-size: 9px; color: #001060; letter-spacing: 0.1em; margin-bottom: 6px; font-weight: 500; }
+.prompt-text { color: #000000; white-space: pre-wrap; }
+
+/* EXPORT */
+.export-section { background: #ffffff; border: 1px solid #d0e0ee; border-radius: 6px; padding: 20px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); }
+.export-title { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: #001060; margin-bottom: 8px; font-weight: 500; }
+.export-desc { font-size: 12px; color: #0a1a2a; line-height: 1.6; margin-bottom: 14px; }
+.export-btns { display: flex; gap: 8px; }
+
+/* TASK NOTES */
+.task-item { cursor: default; flex-wrap: wrap; }
+.task-expand-row { display: flex; align-items: center; gap: 12px; width: 100%; }
+.task-notes-panel { width: 100%; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e0eaf2; display: none; animation: slideDown 0.15s ease; }
+.task-notes-panel.open { display: block; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+.task-note-input { width: 100%; background: #f4f8fc; border: 1px solid #d0e0ee; border-radius: 3px; padding: 8px 12px; font-family: ‘DM Mono’, monospace; font-size: 11px; color: #000000; outline: none; resize: vertical; min-height: 60px; line-height: 1.6; transition: all 0.2s; }
+.task-note-input::placeholder { color: #90a8c0; }
+.task-note-input:focus { border-color: #2a6abf; box-shadow: 0 0 0 2px rgba(42,106,191,0.08); }
+.task-expand-btn { font-size: 9px; color: #90a8c0; cursor: pointer; background: none; border: none; font-family: ‘DM Mono’, monospace; letter-spacing: 0.08em; padding: 2px 4px; transition: color 0.15s; flex-shrink: 0; }
+.task-expand-btn:hover { color: #2a6abf; }
+.task-has-note { color: #2a6abf !important; }
+
+/* CALENDAR TAB */
+.cal-add-row { display: flex; gap: 10px; margin-bottom: 18px; }
+.cal-month-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.cal-month-title { font-family: ‘Cormorant Garamond’, serif; font-size: 24px; font-style: italic; font-weight: 300; color: #000; }
+.cal-nav-btn { background: #fff; border: 1px solid #c0d0e0; color: #2a5898; width: 30px; height: 30px; border-radius: 3px; cursor: pointer; font-size: 16px; font-family: ‘DM Mono’, monospace; transition: all 0.2s; }
+.cal-nav-btn:hover { background: #f0f6ff; border-color: #2a5898; }
+.cal-grid-wrap { background: #fff; border: 1px solid #c8d8e8; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.cal-days-header { display: grid; grid-template-columns: repeat(7,1fr); background: #2a5898; }
+.cal-day-name { text-align: center; padding: 9px; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #a8ccee; }
+.cal-cells { display: grid; grid-template-columns: repeat(7,1fr); }
+.cal-cell { border-right: 1px solid #eef2f8; border-bottom: 1px solid #eef2f8; min-height: 88px; padding: 7px; transition: background 0.15s; }
+.cal-cell:nth-child(7n) { border-right: none; }
+.cal-cell.other-month { background: #f8fafc; }
+.cal-cell.today-cell { background: #f0f6ff; }
+.cal-date-num { font-size: 11px; font-weight: 500; color: #000; margin-bottom: 3px; width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; }
+.cal-date-num.is-today { background: #2a5898; color: #fff; border-radius: 50%; font-size: 10px; }
+.cal-cell.other-month .cal-date-num { color: #aaa; }
+.cal-chip { font-size: 9px; padding: 2px 5px; border-radius: 2px; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; border-left: 2px solid #2a5898; background: #dbeeff; color: #0a3a8a; }
+.cal-chip.done-chip { background: #e8f8ee; border-left-color: #20a060; color: #0a5a2a; text-decoration: line-through; opacity: 0.7; }
+.cal-upcoming-section { background: #fff; border: 1px solid #c8d8e8; border-radius: 8px; padding: 16px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.cal-upcoming-title { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #3a5878; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #eef2f8; }
+.cal-upcoming-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f4f8fc; }
+.cal-upcoming-item:last-child { border-bottom: none; }
+.cal-upcoming-dot { width: 7px; height: 7px; background: #2a5898; border-radius: 50%; flex-shrink: 0; }
+.cal-upcoming-label { flex: 1; font-size: 12px; color: #000; }
+.cal-upcoming-date { font-size: 10px; color: #5a7a98; }
+.cal-upcoming-del { font-size: 10px; color: #b0c8e0; cursor: pointer; background: none; border: none; font-family: ‘DM Mono’, monospace; transition: color 0.15s; }
+.cal-upcoming-del:hover { color: #c03020; }
+
+/* SECTION LABEL */
+.section-label { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: #0f2030; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid #d8e8f4; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #eef2f7; }
+::-webkit-scrollbar-thumb { background: #b8cce0; border-radius: 2px; }
+</style>
+
+</head>
+<body>
+
+<!-- HOME PAGE -->
+
+<div id="page-home" class="page active">
+  <div class="header">
+    <div class="header-inner">
+      <div>
+        <div class="eyebrow">Project Launcher</div>
+        <h1>Projects</h1>
+      </div>
+      <div class="header-meta" id="home-meta">0 projects</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="new-project-bar">
+      <input class="new-project-input" id="new-project-input" placeholder="Name your project..." maxlength="48"
+        onkeydown="if(event.key==='Enter') createProject()"/>
+      <button class="btn" onclick="createProject()">+ Create Project</button>
+    </div>
+    <div class="projects-grid" id="projects-grid"></div>
+  </div>
+</div>
+
+<!-- PROJECT VIEW PAGE -->
+
+<div id="page-project" class="page">
+  <div class="header">
+    <div class="header-inner">
+      <div style="flex:1">
+        <div class="eyebrow" id="proj-eyebrow">Project</div>
+        <div class="proj-title-wrap">
+          <h1 id="proj-title" style="cursor:pointer" onclick="startRename()" title="Click to rename">—</h1>
+          <button class="edit-name-btn" id="edit-name-btn" onclick="startRename()">✎ Rename</button>
+          <input class="rename-input" id="rename-input" style="display:none" maxlength="48"
+            onkeydown="if(event.key==='Enter') saveRename(); if(event.key==='Escape') cancelRename()"/>
+          <button class="save-name-btn" id="save-name-btn" style="display:none" onclick="saveRename()">✓ Save</button>
+        </div>
+      </div>
+      <div class="header-meta" id="proj-meta"></div>
+    </div>
+  </div>
+  <div class="content">
+    <button class="back-btn" onclick="goHome()">← All Projects</button>
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('tasks')">Tasks</button>
+      <button class="tab" onclick="switchTab('notes')">Notes</button>
+      <button class="tab" onclick="switchTab('files')">Files</button>
+      <button class="tab" onclick="switchTab('ai')">AI Prompts</button>
+      <button class="tab" onclick="switchTab('calendar')">Calendar</button>
+      <button class="tab" onclick="switchTab('export')">Export</button>
+    </div>
+
+```
+<!-- TASKS -->
+<div id="tab-tasks" class="tab-panel active">
+  <div class="section-label">Checklist</div>
+  <div class="add-row">
+    <input class="input-sm" id="new-task-input" placeholder="Add a task..." onkeydown="if(event.key==='Enter') addTask()" style="flex:2"/>
+    <input class="input-sm" type="date" id="new-task-due" title="Optional due date" style="flex:1"/>
+    <button class="btn" onclick="addTask()">+ Add</button>
+  </div>
+  <div id="task-list"></div>
+</div>
+
+<!-- NOTES -->
+<div id="tab-notes" class="tab-panel">
+  <div class="section-label">Project Notes</div>
+  <textarea class="notes-area" id="notes-area" placeholder="Write notes, descriptions, context..." oninput="saveNotes()"></textarea>
+</div>
+
+<!-- FILES -->
+<div id="tab-files" class="tab-panel">
+  <div class="section-label">Attachments</div>
+  <div class="file-drop" onclick="document.getElementById('file-input').click()">
+    ↑ Click to attach files
+    <input type="file" id="file-input" multiple style="display:none" onchange="handleFiles(event)"/>
+  </div>
+  <div id="file-list"></div>
+</div>
+
+<!-- AI PROMPTS -->
+<div id="tab-ai" class="tab-panel">
+  <div class="section-label">AI Prompts & Context</div>
+  <div class="add-row" style="flex-direction:column;gap:8px">
+    <textarea class="prompt-area" id="new-prompt-input" placeholder="Write a prompt or context for AI tools...&#10;&#10;e.g. 'You are helping me build a fitness app. The project goals are...'"></textarea>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn" onclick="addPrompt()">+ Save Prompt</button>
+    </div>
+  </div>
+  <div id="prompt-list"></div>
+</div>
+
+<!-- CALENDAR -->
+<div id="tab-calendar" class="tab-panel">
+  <div class="section-label">Project Calendar</div>
+  <div class="cal-add-row">
+    <input class="input-sm" id="cal-task-input" placeholder="Add task to calendar..." style="flex:2"/>
+    <input class="input-sm" type="date" id="cal-date-input" style="flex:1"/>
+    <button class="btn" onclick="addCalendarTask()">+ Add</button>
+  </div>
+  <div class="cal-month-nav">
+    <button class="cal-nav-btn" onclick="changeCalMonth(-1)">‹</button>
+    <div class="cal-month-title" id="cal-month-title"></div>
+    <button class="cal-nav-btn" onclick="changeCalMonth(1)">›</button>
+  </div>
+  <div class="cal-grid-wrap">
+    <div class="cal-days-header">
+      <div class="cal-day-name">Sun</div><div class="cal-day-name">Mon</div>
+      <div class="cal-day-name">Tue</div><div class="cal-day-name">Wed</div>
+      <div class="cal-day-name">Thu</div><div class="cal-day-name">Fri</div>
+      <div class="cal-day-name">Sat</div>
+    </div>
+    <div class="cal-cells" id="cal-cells"></div>
+  </div>
+  <div id="cal-upcoming" style="margin-top:20px"></div>
+</div>
+
+<!-- EXPORT -->
+<div id="tab-export" class="tab-panel">
+  <div class="section-label">Export Project Folder</div>
+  <div class="export-section">
+    <div class="export-title">JSON Export</div>
+    <div class="export-desc">Machine-readable format. Ideal for importing into AI tools, APIs, and other apps. Contains all tasks, notes, files metadata, and prompts.</div>
+    <div class="export-btns">
+      <button class="btn success" onclick="exportJSON()">↓ Download JSON</button>
+      <button class="btn" onclick="copyJSON()">⎘ Copy to Clipboard</button>
+    </div>
+  </div>
+  <div class="export-section">
+    <div class="export-title">Markdown Export</div>
+    <div class="export-desc">Human-readable format. Great for documentation, pasting into ChatGPT, Notion, or sharing with collaborators.</div>
+    <div class="export-btns">
+      <button class="btn success" onclick="exportMarkdown()">↓ Download .md</button>
+      <button class="btn" onclick="copyMarkdown()">⎘ Copy to Clipboard</button>
+    </div>
+  </div>
+  <div class="export-section">
+    <div class="export-title">Delete Project</div>
+    <div class="export-desc">Permanently removes this project and all its contents. This cannot be undone.</div>
+    <button class="btn danger" onclick="deleteProject()">✕ Delete Project</button>
+  </div>
+</div>
+```
+
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let projects = JSON.parse(localStorage.getItem('pl_projects') || '[]');
+let currentId = null;
+
+const COLORS = ['#4f8ef7','#f7c948','#4fcf8e','#f75f4f','#b87fff','#4fd8f7','#f7944f'];
+
+function save() { localStorage.setItem('pl_projects', JSON.stringify(projects)); }
+function getProject() { return projects.find(p => p.id === currentId); }
+
+// ─── HOME ─────────────────────────────────────────────────────────────────────
+function renderHome() {
+  const grid = document.getElementById('projects-grid');
+  document.getElementById('home-meta').textContent = projects.length + ' project' + (projects.length !== 1 ? 's' : '');
+
+  if (projects.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1">
+      <div class="empty-icon">◻</div>
+      <div class="empty-text">No projects yet.<br>Name one above to get started.</div>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = projects.map(p => {
+    const taskCount = p.tasks.length;
+    const doneCount = p.tasks.filter(t => t.done).length;
+    const promptCount = p.prompts.length;
+    const fileCount = p.files.length;
+    return `<div class="project-card" onclick="openProject('${p.id}')">
+      <div class="project-card-accent" style="background:linear-gradient(90deg,${p.color},transparent)"></div>
+      <div class="project-icon">◫</div>
+      <div class="project-name">${p.name}</div>
+      <div class="project-stats">
+        ${taskCount} task${taskCount !== 1 ? 's' : ''} · ${doneCount} done<br>
+        ${p.notes ? '✎ notes · ' : ''}${promptCount} prompt${promptCount !== 1 ? 's' : ''} · ${fileCount} file${fileCount !== 1 ? 's' : ''}
+      </div>
+      <div class="project-date">Created ${new Date(p.created).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+    </div>`;
+  }).join('');
+}
+
+function createProject() {
+  const input = document.getElementById('new-project-input');
+  const name = input.value.trim() || 'New Project';
+  const project = {
+    id: 'p_' + Date.now(),
+    name,
+    color: COLORS[projects.length % COLORS.length],
+    created: new Date().toISOString(),
+    tasks: [],
+    notes: '',
+    files: [],
+    prompts: []
+  };
+  projects.unshift(project);
+  save();
+  input.value = '';
+  renderHome();
+  openProject(project.id);
+}
+
+// ─── PROJECT VIEW ─────────────────────────────────────────────────────────────
+function openProject(id) {
+  currentId = id;
+  openTaskId = null;
+  const p = getProject();
+  document.getElementById('proj-eyebrow').textContent = 'Project';
+  document.getElementById('proj-title').textContent = p.name;
+  document.getElementById('proj-meta').textContent = 'Created ' + new Date(p.created).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  switchTab('tasks');
+  showPage('page-project');
+  renderTasks();
+  renderFiles();
+  renderPrompts();
+  calViewDate = new Date();
+  renderCalendar();
+  document.getElementById('notes-area').value = p.notes || '';
+}
+
+function goHome() {
+  showPage('page-home');
+  renderHome();
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(t => t.classList.remove('active'));
+  document.querySelector(`.tab[onclick="switchTab('${name}')"]`).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ─── TASKS ────────────────────────────────────────────────────────────────────
+let openTaskId = null;
+
+function addTask() {
+  const input = document.getElementById('new-task-input');
+  const dueInput = document.getElementById('new-task-due');
+  const label = input.value.trim();
+  if (!label) return;
+  const p = getProject();
+  p.tasks.push({ id: 't_' + Date.now(), label, done: false, note: '', dueDate: dueInput ? dueInput.value : '' });
+  save(); input.value = '';
+  if (dueInput) dueInput.value = '';
+  renderTasks();
+  renderCalendar();
+}
+
+function toggleTask(tid) {
+  const p = getProject();
+  const t = p.tasks.find(t => t.id === tid);
+  if (t) t.done = !t.done;
+  save(); renderTasks();
+}
+
+function toggleTaskOpen(tid) {
+  openTaskId = openTaskId === tid ? null : tid;
+  renderTasks();
+}
+
+function saveTaskNote(tid, val) {
+  const p = getProject();
+  const t = p.tasks.find(t => t.id === tid);
+  if (t) t.note = val;
+  save();
+}
+
+function deleteTask(tid) {
+  const p = getProject();
+  p.tasks = p.tasks.filter(t => t.id !== tid);
+  if (openTaskId === tid) openTaskId = null;
+  save(); renderTasks();
+}
+
+function renderTasks() {
+  const p = getProject();
+  const list = document.getElementById('task-list');
+  if (p.tasks.length === 0) {
+    list.innerHTML = `<div style="text-align:center;padding:32px 0;color:#6a8898;font-size:11px;letter-spacing:0.08em">No tasks yet. Add one above.</div>`;
+    return;
+  }
+  list.innerHTML = p.tasks.map(t => {
+    const isOpen = openTaskId === t.id;
+    const hasNote = t.note && t.note.trim().length > 0;
+    return `
+    <div class="task-item ${isOpen ? 'task-open' : ''}">
+      <div class="task-expand-row">
+        <div class="task-check ${t.done ? 'done' : ''}" onclick="toggleTask('${t.id}')"><span class="ck">✓</span></div>
+        <span class="task-label ${t.done ? 'done' : ''}" style="cursor:pointer" onclick="toggleTaskOpen('${t.id}')">${t.label}</span>
+        <button class="task-expand-btn ${hasNote ? 'task-has-note' : ''}" onclick="toggleTaskOpen('${t.id}')">${isOpen ? '▲ hide' : (hasNote ? '✎ note' : '▼ note')}</button>
+        ${t.dueDate ? `<span style="font-size:9px;padding:2px 7px;border-radius:10px;background:#e8f0ff;color:#0a3a8a;letter-spacing:0.04em">${new Date(t.dueDate+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}</span>` : ''}
+        <button class="del-btn" onclick="deleteTask('${t.id}')">✕</button>
+      </div>
+      <div class="task-notes-panel ${isOpen ? 'open' : ''}">
+        <textarea class="task-note-input" placeholder="Add notes for this task..." onchange="saveTaskNote('${t.id}', this.value)" oninput="saveTaskNote('${t.id}', this.value)">${t.note || ''}</textarea>
+
+```
+  </div>
+</div>`;
+```
+
+}).join(’’);
+}
+
+// ─── NOTES ────────────────────────────────────────────────────────────────────
+function saveNotes() {
+const p = getProject();
+p.notes = document.getElementById(‘notes-area’).value;
+save();
+}
+
+// ─── FILES ────────────────────────────────────────────────────────────────────
+function handleFiles(e) {
+const p = getProject();
+Array.from(e.target.files).forEach(f => {
+p.files.push({ id: ‘f_’ + Date.now() + Math.random(), name: f.name, size: f.size, type: f.type, added: new Date().toISOString() });
+});
+save(); renderFiles();
+}
+
+function deleteFile(fid) {
+const p = getProject();
+p.files = p.files.filter(f => f.id !== fid);
+save(); renderFiles();
+}
+
+function renderFiles() {
+const p = getProject();
+const list = document.getElementById(‘file-list’);
+if (p.files.length === 0) {
+list.innerHTML = `<div style="text-align:center;padding:24px 0;color:#6a8898;font-size:11px;letter-spacing:0.08em">No files attached.</div>`;
+return;
+}
+list.innerHTML = p.files.map(f => ` <div class="file-item"> <span class="file-icon">◻</span> <span class="file-name">${f.name}</span> <span class="file-size">${(f.size/1024).toFixed(1)} KB</span> <button class="del-btn" onclick="deleteFile('${f.id}')">✕</button> </div>`).join(’’);
+}
+
+// ─── AI PROMPTS ───────────────────────────────────────────────────────────────
+function addPrompt() {
+const input = document.getElementById(‘new-prompt-input’);
+const text = input.value.trim();
+if (!text) return;
+const p = getProject();
+p.prompts.push({ id: ‘pr_’ + Date.now(), text, created: new Date().toISOString() });
+save(); input.value = ‘’;
+renderPrompts();
+}
+
+function deletePrompt(pid) {
+const p = getProject();
+p.prompts = p.prompts.filter(pr => pr.id !== pid);
+save(); renderPrompts();
+}
+
+function renderPrompts() {
+const p = getProject();
+const list = document.getElementById(‘prompt-list’);
+if (p.prompts.length === 0) {
+list.innerHTML = `<div style="text-align:center;padding:24px 0;color:#6a8898;font-size:11px;letter-spacing:0.08em">No prompts saved.</div>`;
+return;
+}
+list.innerHTML = p.prompts.map(pr => ` <div class="prompt-saved"> <div class="prompt-saved-label">PROMPT · ${new Date(pr.created).toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div> <div class="prompt-text">${pr.text}</div> <button class="del-btn" style="position:absolute;top:12px;right:12px" onclick="deletePrompt('${pr.id}')">✕</button> </div>`).join(’’);
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+function buildJSON() {
+const p = getProject();
+return JSON.stringify({
+schema: “project-launcher/v1”,
+exported: new Date().toISOString(),
+project: {
+id: p.id,
+name: p.name,
+created: p.created,
+tasks: p.tasks,
+notes: p.notes,
+files: p.files.map(f => ({ name: f.name, size: f.size, type: f.type, added: f.added })),
+prompts: p.prompts
+}
+}, null, 2);
+}
+
+function buildMarkdown() {
+const p = getProject();
+const done = p.tasks.filter(t => t.done).length;
+let md = `# ${p.name}\n\n`;
+md += `> Created: ${new Date(p.created).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'})}\n\n`;
+md += `---\n\n`;
+md += `## Tasks (${done}/${p.tasks.length} complete)\n\n`;
+p.tasks.forEach(t => { md += `- [${t.done ? 'x' : ' '}] ${t.label}\n`; });
+if (p.notes) { md += `\n---\n\n## Notes\n\n${p.notes}\n`; }
+if (p.files.length) {
+md += `\n---\n\n## Files\n\n`;
+p.files.forEach(f => { md += `- ${f.name} (${(f.size/1024).toFixed(1)} KB)\n`; });
+}
+if (p.prompts.length) {
+md += `\n---\n\n## AI Prompts\n\n`;
+p.prompts.forEach((pr, i) => { md += `### Prompt ${i+1}\n\n${pr.text}\n\n`; });
+}
+return md;
+}
+
+function downloadFile(content, filename, type) {
+const blob = new Blob([content], { type });
+const a = document.createElement(‘a’);
+a.href = URL.createObjectURL(blob);
+a.download = filename;
+a.click();
+}
+
+function exportJSON() {
+const p = getProject();
+downloadFile(buildJSON(), p.name.replace(/\s+/g,’-’).toLowerCase() + ‘.json’, ‘application/json’);
+}
+
+function exportMarkdown() {
+const p = getProject();
+downloadFile(buildMarkdown(), p.name.replace(/\s+/g,’-’).toLowerCase() + ‘.md’, ‘text/markdown’);
+}
+
+function copyJSON() {
+navigator.clipboard.writeText(buildJSON()).then(() => alert(‘JSON copied to clipboard!’));
+}
+
+function copyMarkdown() {
+navigator.clipboard.writeText(buildMarkdown()).then(() => alert(‘Markdown copied to clipboard!’));
+}
+
+function deleteProject() {
+if (!confirm(‘Delete this project? This cannot be undone.’)) return;
+projects = projects.filter(p => p.id !== currentId);
+save();
+goHome();
+}
+
+// ─── CALENDAR ─────────────────────────────────────────────────────────────────
+let calViewDate = new Date();
+
+function addCalendarTask() {
+const label = document.getElementById(‘cal-task-input’).value.trim();
+const date = document.getElementById(‘cal-date-input’).value;
+if (!label || !date) return;
+const p = getProject();
+if (!p.calEvents) p.calEvents = [];
+p.calEvents.push({ id: ‘e_’ + Date.now(), label, date, done: false });
+save();
+document.getElementById(‘cal-task-input’).value = ‘’;
+document.getElementById(‘cal-date-input’).value = ‘’;
+renderCalendar();
+}
+
+function deleteCalEvent(eid) {
+const p = getProject();
+p.calEvents = (p.calEvents || []).filter(e => e.id !== eid);
+save(); renderCalendar();
+}
+
+function toggleCalEvent(eid) {
+const p = getProject();
+const e = (p.calEvents || []).find(e => e.id === eid);
+if (e) e.done = !e.done;
+save(); renderCalendar();
+}
+
+function changeCalMonth(dir) {
+calViewDate = new Date(calViewDate.getFullYear(), calViewDate.getMonth() + dir, 1);
+renderCalendar();
+}
+
+function renderCalendar() {
+const p = getProject();
+const events = p.calEvents || [];
+const year = calViewDate.getFullYear();
+const month = calViewDate.getMonth();
+const todayStr = new Date().toISOString().split(‘T’)[0];
+
+document.getElementById(‘cal-month-title’).textContent =
+new Date(year, month, 1).toLocaleDateString(‘en-US’, { month: ‘long’, year: ‘numeric’ });
+
+const firstDay = new Date(year, month, 1).getDay();
+const daysInMonth = new Date(year, month + 1, 0).getDate();
+const daysInPrev = new Date(year, month, 0).getDate();
+
+let cells = ‘’;
+for (let i = firstDay - 1; i >= 0; i–) {
+cells += `<div class="cal-cell other-month"><div class="cal-date-num">${daysInPrev - i}</div></div>`;
+}
+for (let d = 1; d <= daysInMonth; d++) {
+const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+const isToday = dateStr === todayStr;
+const dayEvents = events.filter(e => e.date === dateStr);
+
+```
+// Also show tasks with due dates matching this day
+const taskEvents = (p.tasks || []).filter(t => t.dueDate === dateStr);
+
+const chips = [
+  ...dayEvents.map(e => `<div class="cal-chip ${e.done ? 'done-chip' : ''}" onclick="toggleCalEvent('${e.id}')" title="${e.label}">${e.label}</div>`),
+  ...taskEvents.map(t => `<div class="cal-chip" style="border-left-color:#7840d0;background:#f0e8ff;color:#3a0a8a" title="${t.label} (task)">${t.label}</div>`)
+].join('');
+
+cells += `<div class="cal-cell ${isToday ? 'today-cell' : ''}">
+  <div class="cal-date-num ${isToday ? 'is-today' : ''}">${d}</div>
+  ${chips}
+</div>`;
+```
+
+}
+const totalCells = firstDay + daysInMonth;
+const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+for (let i = 1; i <= remaining; i++) {
+cells += `<div class="cal-cell other-month"><div class="cal-date-num">${i}</div></div>`;
+}
+document.getElementById(‘cal-cells’).innerHTML = cells;
+
+// Upcoming list
+const nowStr = new Date().toISOString().split(‘T’)[0];
+const upcoming = events
+.filter(e => e.date >= nowStr)
+.sort((a,b) => a.date.localeCompare(b.date));
+
+const upcomingEl = document.getElementById(‘cal-upcoming’);
+if (upcoming.length === 0) {
+upcomingEl.innerHTML = ‘’;
+return;
+}
+upcomingEl.innerHTML = `<div class="cal-upcoming-section"> <div class="cal-upcoming-title">Upcoming — ${upcoming.length} event${upcoming.length !== 1 ? 's' : ''}</div> ${upcoming.map(e => `
+<div class="cal-upcoming-item">
+<div class="cal-upcoming-dot" style="${e.done ? 'background:#20a060' : ''}"></div>
+<span class="cal-upcoming-label" style="${e.done ? 'text-decoration:line-through;color:#90a8c0' : ''}">${e.label}</span>
+<span class="cal-upcoming-date">${new Date(e.date+‘T00:00:00’).toLocaleDateString(‘en-US’,{month:‘short’,day:‘numeric’})}</span>
+<button class="cal-upcoming-del" onclick="deleteCalEvent('${e.id}')">✕</button>
+</div>`).join(’’)}
+
+  </div>`;
+}
+
+// ─── RENAME ───────────────────────────────────────────────────────────────────
+function startRename() {
+const p = getProject();
+const title = document.getElementById(‘proj-title’);
+const input = document.getElementById(‘rename-input’);
+const editBtn = document.getElementById(‘edit-name-btn’);
+const saveBtn = document.getElementById(‘save-name-btn’);
+title.style.display = ‘none’;
+editBtn.style.display = ‘none’;
+input.style.display = ‘inline-block’;
+saveBtn.style.display = ‘inline-block’;
+input.value = p.name;
+input.focus();
+input.select();
+}
+
+function saveRename() {
+const p = getProject();
+const input = document.getElementById(‘rename-input’);
+const newName = input.value.trim();
+if (newName) p.name = newName;
+save();
+cancelRename();
+document.getElementById(‘proj-title’).textContent = p.name;
+renderHome();
+}
+
+function cancelRename() {
+document.getElementById(‘proj-title’).style.display = ‘’;
+document.getElementById(‘edit-name-btn’).style.display = ‘’;
+document.getElementById(‘rename-input’).style.display = ‘none’;
+document.getElementById(‘save-name-btn’).style.display = ‘none’;
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+// Clear any old data from previous versions
+const savedVersion = localStorage.getItem(‘pl_version’);
+if (savedVersion !== ‘2’) {
+localStorage.removeItem(‘pl_projects’);
+localStorage.setItem(‘pl_version’, ‘2’);
+projects = [];
+}
+renderHome();
+</script>
+
+</body>
+</html>
